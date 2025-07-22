@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path of Immortality</title>
+    <!-- Google Fonts for UI and a substitute Title font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Global Reset & Base Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevents scrollbars */
+            font-family: 'Cinzel', serif; /* UI Font */
+            color: #E0E0E0;
+            background-color: #000; /* Fallback background */
+        }
+
+        /* --- Video Background --- */
+        #bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: -1;
+            object-fit: cover; /* Responsive scaling */
+        }
+
+        /* --- Layout & Screen Management --- */
+        #app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex; /* Always use flex for centering */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background-color: rgba(0, 0, 0, 0.6); /* Overlay for readability */
+            
+            /* Transition Properties for smooth cross-fade */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none; /* Block interaction when not active */
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto; /* Allow interaction when active */
+        }
+
+        /* --- Disclaimer Screen Styles --- */
+        .disclaimer-content {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .disclaimer-title {
+            color: #D4AF37; /* Gold/amber color */
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .disclaimer-content p {
+            text-align: justify;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .loading-indicator {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #D4AF37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        #loading-percentage {
+            font-size: 1.2rem;
+            color: #D4AF37;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- Login & Sign Up Screen Styles --- */
+        .auth-screen .game-title {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 8rem;
+            font-weight: normal;
+            color: #E0E0E0;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+            position: absolute;
+            top: 15%;
+            pointer-events: none; /* Make title unclickable */
+        }
+
+        .form-container {
+            position: relative;
+            padding: 2px; /* For the gradient border */
+            border-radius: 20px;
+            background: linear-gradient(145deg, #D4AF37, #F0E68C, #D4AF37);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .auth-form {
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 3rem 4rem;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            min-width: 450px;
+        }
+
+        .form-title {
+            color: #D4AF37;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .input-group label {
+            font-size: 1rem;
+            letter-spacing: 1px;
+            color: #ccc;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: #E0E0E0;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(25%);
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            fill: #888;
+            transition: fill 0.3s;
+        }
+        .password-toggle:hover {
+            fill: #fff;
+        }
+
+        .password-toggle .eye-closed {
+            display: none;
+        }
+        
+        .form-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .form-button {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: #1a1a1a;
+            background-color: #D4AF37;
+            border: none;
+            padding: 0.75rem 2.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            font-weight: 700;
+        }
+
+        .form-button:hover {
+            background-color: #f0e68c;
+            box-shadow: 0 0 15px rgba(240, 230, 140, 0.5);
+        }
+
+        .sub-link {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        .sub-link:hover {
+            color: #fff;
+        }
+
+        /* --- Main Menu Screen Styles --- */
+        .main-menu-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        #main-menu-screen .game-title {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 8rem;
+            font-weight: normal;
+            color: #E0E0E0;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        }
+
+        .main-menu-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-button {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #E0E0E0;
+            background-color: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: color 0.3s, text-shadow 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .menu-button:hover:not(:disabled) {
+            color: #FFFFFF;
+            text-shadow: 0 0 10px #FFFFFF, 0 0 20px #D4AF37;
+        }
+
+        .menu-button:disabled {
+            color: #777;
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        .game-footer {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- The video background will loop continuously -->
+    <video playsinline autoplay muted loop id="bg-video">
+        <!-- Make sure the path to your video file is correct -->
+        <source src="bg/loop-1.mp4" type="video/mp4" onerror="this.parentElement.style.display='none'">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- This container holds all the different screens of the application -->
+    <div id="app-container">
+
+        <!-- Disclaimer Screen: The first thing the player sees -->
+        <div id="disclaimer-screen" class="screen active">
+            <div class="disclaimer-content">
+                <h1 class="disclaimer-title">DISCLAIMER</h1>
+                <p>This game is a work of fiction inspired by the Xianxia and cultivation fantasy genre, created solely for entertainment purposes.</p>
+                <p>All names, sects, locations, techniques, and events depicted within the game are entirely fictional or stylized. Any resemblance to actual persons, cultures, organizations, or real-world practices is purely coincidental or used for parody or homage.</p>
+                <p>This game is not affiliated with, endorsed by, or sponsored by any real-world company, platform, or brand. All references to spiritual concepts, cultivation systems, or mythological elements are fictional and intended to enrich the immersive fantasy experience.</p>
+                <div class="loading-indicator">
+                    <div class="spinner"></div>
+                    <span id="loading-percentage">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Screen: Appears after the disclaimer -->
+        <div id="login-screen" class="screen auth-screen">
+            <h1 class="game-title">Path of Immortality</h1>
+            <div class="form-container">
+                <form id="login-form" class="auth-form">
+                    <h2 class="form-title">LOGIN</h2>
+                    <div class="input-group">
+                        <label for="login-id">ID</label>
+                        <input type="text" id="login-id" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">PASSWORD</label>
+                        <input type="password" id="login-password" class="input-field" required>
+                        <div class="password-toggle">
+                            <svg class="eye-open" viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                            <svg class="eye-closed" viewBox="0 0 24 24"><path d="M12,12.3C11.1,12.3 10.3,11.5 10.3,10.6C10.3,9.7 11.1,8.9 12,8.9C12.9,8.9 13.7,9.7 13.7,10.6C13.7,11.5 12.9,12.3 12,12.3M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="form-button">LOGIN</button>
+                        <button type="button" id="go-to-signup-link" class="sub-link">Don't have account?</button>
+                    </div>
+                </form>
+            </div>
+             <footer class="game-footer">
+                <span class="version-info">Version: 0.1.0-alpha</span>
+                <span class="copyright-info">© 2025 xiansim. All rights reserved</span>
+            </footer>
+        </div>
+        
+        <!-- Sign Up Screen: Appears when "Don't have account?" is clicked -->
+        <div id="signup-screen" class="screen auth-screen">
+            <h1 class="game-title">Path of Immortality</h1>
+            <div class="form-container">
+                <form id="signup-form" class="auth-form">
+                    <h2 class="form-title">SIGN UP</h2>
+                    <div class="input-group">
+                        <label for="signup-id">ID</label>
+                        <input type="text" id="signup-id" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-password">PASSWORD</label>
+                        <input type="password" id="signup-password" class="input-field" required>
+                        <div class="password-toggle">
+                           <svg class="eye-open" viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                           <svg class="eye-closed" viewBox="0 0 24 24"><path d="M12,12.3C11.1,12.3 10.3,11.5 10.3,10.6C10.3,9.7 11.1,8.9 12,8.9C12.9,8.9 13.7,9.7 13.7,10.6C13.7,11.5 12.9,12.3 12,12.3M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                        </div>
+                    </div>
+                     <div class="input-group">
+                        <label for="signup-password-confirm">CONFIRM PASSWORD</label>
+                        <input type="password" id="signup-password-confirm" class="input-field" required>
+                        <div class="password-toggle">
+                            <svg class="eye-open" viewBox="0 0 24 24"><path d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                            <svg class="eye-closed" viewBox="0 0 24 24"><path d="M12,12.3C11.1,12.3 10.3,11.5 10.3,10.6C10.3,9.7 11.1,8.9 12,8.9C12.9,8.9 13.7,9.7 13.7,10.6C13.7,11.5 12.9,12.3 12,12.3M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" /></svg>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="form-button">SIGN UP</button>
+                        <button type="button" id="go-to-login-link" class="sub-link">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+             <footer class="game-footer">
+                <span class="version-info">Version: 0.1.0-alpha</span>
+                <span class="copyright-info">© 2025 xiansim. All rights reserved</span>
+            </footer>
+        </div>
+
+        <!-- Main Menu Screen: Appears after login -->
+        <div id="main-menu-screen" class="screen">
+            <div class="main-menu-content">
+                <h1 class="game-title">Path of Immortality</h1>
+                <nav class="main-menu-nav">
+                    <button class="menu-button" id="continue-btn" disabled>Continue</button>
+                    <button class="menu-button" id="new-game-btn">New Game</button>
+                    <button class="menu-button" id="load-game-btn">Load Game</button>
+                    <button class="menu-button" id="credits-btn">Credits</button>
+                    <button class="menu-button" id="exit-game-btn">Exit Game</button>
+                </nav>
+            </div>
+            <footer class="game-footer">
+                <span class="version-info">Version: 0.1.0-alpha</span>
+                <span class="copyright-info">© 2025 xiansim. All rights reserved</span>
+            </footer>
+        </div>
+        
+    </div>
+
+    <script>
+        /**
+         * Path of Immortality - All-in-One Script
+         * This script controls the menu flow and navigates to other pages.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+
+            document.getElementById('go-to-signup-link').addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${API_URL}/generate-uid`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        signupIdInput.value = data.uid;
+        alert(`Your new 8-digit ID is: ${data.uid}`);
+        transitionToScreen(signupScreen);
+    } catch (error) {
+        console.error('Failed to generate ID:', error);
+        alert("Server error. Please try again.");
+    }
+});
+
+
+            // --- Configuration ---
+            const API_URL = 'http://localhost:5000/api'; // Backend server URL
+            let SAVE_ID = null; 
+
+            // --- DOM Element References ---
+            const disclaimerScreen = document.querySelector('#disclaimer-screen');
+            const loginScreen = document.querySelector('#login-screen');
+            const signupScreen = document.querySelector('#signup-screen');
+            const mainMenuScreen = document.querySelector('#main-menu-screen');
+            
+            const loadingPercentage = document.querySelector('#loading-percentage');
+            
+            // Forms
+            const loginForm = document.querySelector('#login-form');
+            const signupForm = document.querySelector('#signup-form');
+
+            // Inputs
+            const loginIdInput = document.querySelector('#login-id');
+            const loginPasswordInput = document.querySelector('#login-password');
+            const signupIdInput = document.querySelector('#signup-id');
+            const signupPasswordInput = document.querySelector('#signup-password');
+            const signupPasswordConfirmInput = document.querySelector('#signup-password-confirm');
+
+            // Links & Buttons
+            const goToSignupLink = document.querySelector('#go-to-signup-link');
+            const goToLoginLink = document.querySelector('#go-to-login-link');
+            const newGameBtn = document.querySelector('#new-game-btn');
+            const continueBtn = document.querySelector('#continue-btn');
+            const loadGameBtn = document.querySelector('#load-game-btn');
+            const passwordToggles = document.querySelectorAll('.password-toggle');
+
+            // --- State Management ---
+            let currentScreen = disclaimerScreen; // Track the currently active screen
+            
+            // --- Core Application Flow Functions ---
+
+            /**
+             * Handles the visual transition between different screens within this page
+             * using a smooth cross-fade effect.
+             * @param {HTMLElement} targetScreen - The screen element to make active.
+             */
+            function transitionToScreen(targetScreen) {
+                if (currentScreen && currentScreen !== targetScreen) {
+                    currentScreen.classList.remove('active');
+                }
+                targetScreen.classList.add('active');
+                currentScreen = targetScreen;
+            }
+
+            /**
+             * Simulates a loading process on the disclaimer screen.
+             */
+            function simulateLoading() {
+                let percent = 0;
+                const interval = setInterval(() => {
+                    percent++;
+                    if (loadingPercentage) {
+                        loadingPercentage.textContent = `${percent}%`;
+                    }
+                    if (percent >= 100) {
+                        clearInterval(interval);
+                        transitionToScreen(loginScreen);
+                    }
+                }, 30); // ~3 second load time
+            }
+
+            // --- API (Backend Communication) Functions ---
+
+            async function loginUser(id, password) {
+                console.log(`Attempting to log in user: ${id}`);
+                // --- SIMULATED SUCCESSFUL LOGIN ---
+                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log("Simulated login successful.");
+                SAVE_ID = `player_save_${id}`;
+                return { id: id, name: "Cultivator " + id };
+            }
+
+             async function registerUser(id, password) {
+                console.log(`Attempting to register user: ${id}`);
+                // --- SIMULATED SUCCESSFUL REGISTRATION ---
+                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log("Simulated registration successful.");
+                // After registering, we can treat it as a login
+                SAVE_ID = `player_save_${id}`;
+                return { id: id, name: "Cultivator " + id };
+            }
+
+            async function loadGame(saveId) {
+                // This function remains the same, checking for an existing save file.
+                return null; // Simulate no save file for now
+            }
+
+            // --- Event Listeners & Initialization ---
+
+            function setupEventListeners() {
+                // Login Form Submission
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const id = loginIdInput.value;
+                    const password = loginPasswordInput.value;
+                    const userData = await loginUser(id, password);
+
+                    if (userData) {
+                        const savedGame = await loadGame(SAVE_ID);
+                        continueBtn.disabled = savedGame === null;
+                        transitionToScreen(mainMenuScreen);
+                    } else {
+                        alert("Login Failed (Simulated). Please try again.");
+                    }
+                });
+
+                // Sign Up Form Submission
+                signupForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const id = signupIdInput.value;
+                    const password = signupPasswordInput.value;
+                    const confirmPassword = signupPasswordConfirmInput.value;
+                    
+                    if (password !== confirmPassword) {
+                        alert("Passwords do not match!");
+                        return;
+                    }
+
+                    const userData = await registerUser(id, password);
+                    if (userData) {
+                        // After signing up, there's no save file, so Continue is disabled.
+                        continueBtn.disabled = true;
+                        transitionToScreen(mainMenuScreen);
+                    } else {
+                        alert("Registration Failed (Simulated). Please try again.");
+                    }
+                });
+
+                // Navigation Links
+                goToSignupLink.addEventListener('click', async () => {
+                 try {
+                      const response = await fetch(`${API_URL}/generate-uid`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                     });
+                     
+                     const data = await response.json();
+                     signupIdInput.value = data.uid;
+                     signupPasswordInput.value = '';
+                     signupPasswordConfirmInput.value = '';
+                     alert(`Your unique ID is: ${data.uid}. Please set a password to continue.`);
+                     transitionToScreen(signupScreen);
+                } catch (err) {
+                    console.error('Error generating UID:', err);
+                    alert("Error generating ID. Please try again.");
+                }
+              });
+
+                goToLoginLink.addEventListener('click', () => transitionToScreen(loginScreen));
+
+                // Main Menu Buttons
+                newGameBtn.addEventListener('click', () => {
+                    window.location.href = 'cha.html';
+                });
+
+                continueBtn.addEventListener('click', () => {
+                    if (!continueBtn.disabled) {
+                        window.location.href = 'game.html';
+                    }
+                });
+
+                loadGameBtn.addEventListener('click', () => {
+                    window.location.href = 'game.html';
+                });
+
+                // Password visibility toggles
+                passwordToggles.forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const passwordInput = toggle.parentElement.querySelector('input[type="password"], input[type="text"]');
+                        const eyeOpen = toggle.querySelector('.eye-open');
+                        const eyeClosed = toggle.querySelector('.eye-closed');
+
+                        if (passwordInput.type === 'password') {
+                            passwordInput.type = 'text';
+                            eyeOpen.style.display = 'none';
+                            eyeClosed.style.display = 'block';
+                        } else {
+                            passwordInput.type = 'password';
+                            eyeOpen.style.display = 'block';
+                            eyeClosed.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            /**
+             * The main initialization function.
+             */
+            function initialize() {
+                setupEventListeners();
+                simulateLoading();
+            }
+
+            // --- Application Start ---
+            initialize();
+        });
+    </script>
+</body>
+</html>

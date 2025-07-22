@@ -1,0 +1,181 @@
+/* css/style.css */
+
+/* --- Global Reset & Base Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevents scrollbars from appearing */
+    font-family: 'UIFont', sans-serif; /* Placeholder name for our chosen UI font */
+    color: #E0E0E0; /* A muted white for better readability than pure white */
+    background-color: #000; /* Fallback background color */
+}
+
+/* --- Video Background --- */
+#bg-video {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: -1;
+    object-fit: cover; /* This is crucial for responsive scaling */
+}
+
+/* --- Layout & Screen Management --- */
+#app-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* Hide all screens by default */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay to improve text readability */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.screen.active {
+    display: flex; /* Show the active screen */
+    opacity: 1;
+}
+
+/* --- Font Definitions --- */
+@font-face {
+    font-family: 'TitleFont';
+    src: url('../assets/fonts/FounderYellowGrass.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UIFont';
+    src: url('../assets/fonts/Cinzel-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* --- Disclaimer Screen Styles --- */
+.disclaimer-content {
+    max-width: 800px;
+    text-align: center;
+}
+
+.disclaimer-title {
+    font-family: 'UIFont', sans-serif;
+    color: #D4AF37; /* A gold/amber color */
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+}
+
+.disclaimer-content p {
+    font-family: 'UIFont', sans-serif;
+    text-align: justify;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.loading-indicator {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #D4AF37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+#loading-percentage {
+    font-family: 'UIFont', sans-serif;
+    font-size: 1.2rem;
+    color: #D4AF37;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Main Menu Screen Styles --- */
+.main-menu-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.game-title {
+    font-family: 'TitleFont', cursive;
+    font-size: 6rem;
+    color: #E0E0E0;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.main-menu-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-button {
+    font-family: 'UIFont', sans-serif;
+    font-size: 1.5rem;
+    color: #E0E0E0;
+    background-color: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: color 0.3s, text-shadow 0.3s;
+    letter-spacing: 1px;
+}
+
+.menu-button:hover:not(:disabled) {
+    color: #FFFFFF;
+    text-shadow: 0 0 10px #FFFFFF;
+}
+
+.menu-button:disabled {
+    color: #777;
+    cursor: not-allowed;
+}
+
+.game-footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'UIFont', sans-serif;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
